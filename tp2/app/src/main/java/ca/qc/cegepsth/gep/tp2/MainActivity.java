@@ -12,7 +12,10 @@ import android.widget.ListView;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
+import ca.qc.cegepsth.gep.tp2.registre.FluxSuivis;
 import ca.qc.cegepsth.gep.tp2.rssparser.RSSFeed;
 import ca.qc.cegepsth.gep.tp2.rssparser.RSSItem;
 
@@ -22,27 +25,31 @@ import ca.qc.cegepsth.gep.tp2.rssparser.RSSItem;
  * @Description : Activité qui gère les contenus RSS de différents liens
  * ouverts par l'utilisateur ayant du contenu RSS.
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Observer {
 
     ListView lv;
     ArrayList<RSSItem> lstItems;
-    URL url;
-    RSSFeed feed;
-
+    FluxSuivis fluxs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //aller chercher l'instance des fluxs suivis
+        fluxs = FluxSuivis.getInstance();
+        //observer les fluxs suivis
+        fluxs.addObserver(this);
+
         lstItems = new ArrayList<RSSItem>();
         lv = (ListView) findViewById(R.id.lstItems);
-        EditText editUrl = (EditText) findViewById(R.id.edtUrl);
+        final EditText editUrl = (EditText) findViewById(R.id.edtUrl);
 
         //Va chercher l'intent déclenchée par l'ouvertur d'un lien RSS
         Intent intent = getIntent();
         Uri uri = intent.getData();
         //Si ouvert a partir d'une page web, url apparait en haut
+        URL url;
         if (uri != null) {
             try {
                 url = new URL(uri.toString());
@@ -57,7 +64,34 @@ public class MainActivity extends AppCompatActivity {
         buttonAdd.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 //ajouter l'url 'a la liste de feed
+                fluxs.add(getUrl(editUrl.getText().toString()));
+                editUrl.setText("http://");
             }
         });
+    }
+    @Override
+    public void update(Observable b, Object o){
+        refreshList();
+    }
+    private void refreshList(){
+        ArrayList<URL> urls = fluxs.getListe();
+    }
+    private URL getUrl(Uri uri){
+        URL url = null;
+        try {
+            url = new URL(uri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return url;
+    }
+    private URL getUrl(String s){
+        URL url = null;
+        try {
+            url = new URL(s);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return url;
     }
 }
