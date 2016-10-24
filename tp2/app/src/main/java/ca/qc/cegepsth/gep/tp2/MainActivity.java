@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -29,6 +30,9 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
     ListView lv;
     ArrayList<RSSItem> lstItems;
+    ArrayAdapter<String> adapter;
+    RSSFeed feed;
+    URL url;
     FluxSuivis fluxs;
 
     @Override
@@ -49,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
         Intent intent = getIntent();
         Uri uri = intent.getData();
         //Si ouvert a partir d'une page web, url apparait en haut
-        URL url;
+        url = null;
         if (uri != null) {
             try {
                 url = new URL(uri.toString());
@@ -68,7 +72,15 @@ public class MainActivity extends AppCompatActivity implements Observer {
                 editUrl.setText("http://");
             }
         });
+
+        //Instanciation et exécution pour la conversion RSS
+        feed = new RSSFeed(url);
+
+        //adapter = new ArrayAdapter<String>(MainActivity.this,
+                //android.R.layout.simple_list_item_1, itemList);
+        //lv.setAdapter(adapter);
     }
+
     @Override
     public void update(Observable b, Object o){
         refreshList();
@@ -76,6 +88,8 @@ public class MainActivity extends AppCompatActivity implements Observer {
     private void refreshList(){
         ArrayList<URL> urls = fluxs.getListe();
     }
+
+    //Retourne l'url à partir de l'uri
     private URL getUrl(Uri uri){
         URL url = null;
         try {
@@ -85,6 +99,8 @@ public class MainActivity extends AppCompatActivity implements Observer {
         }
         return url;
     }
+
+    //Retourne l'url à partir d'une string
     private URL getUrl(String s){
         URL url = null;
         try {
