@@ -2,6 +2,7 @@ package ca.qc.cegepsth.gep.tp2.registre;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Observable;
 
 import ca.qc.cegepsth.gep.tp2.rssparser.RSSItem;
 
@@ -11,7 +12,7 @@ import ca.qc.cegepsth.gep.tp2.rssparser.RSSItem;
  * Created by Stéphane Denis on 2016-09-25.
  */
 
-public class ItemsLus implements Serializable {
+public class ItemsLus extends Observable implements Serializable {
     private HashSet<String> guids;
 
     /**
@@ -24,7 +25,15 @@ public class ItemsLus implements Serializable {
         if(guids==null){
             guids = new HashSet<String>();
         }
-        return guids.add(item.getGuid());
+
+        boolean exist=guids.contains(item.getGuid());
+        if(!exist){
+            guids.add(item.getGuid());
+            setChanged();
+            notifyObservers();
+        }
+
+        return exist;
     }
 
     /**
@@ -37,8 +46,13 @@ public class ItemsLus implements Serializable {
         if(guids==null){
             return false;
         }
-
-        return guids.remove(item);
+        boolean exist=guids.contains(item.getGuid());
+        if(exist){
+        guids.remove(item);
+            setChanged();
+            notifyObservers();
+        }
+        return exist;
     }
 
     /**
@@ -51,6 +65,6 @@ public class ItemsLus implements Serializable {
         if(guids==null){
             return false;
         }
-        return guids.contains(item);
+        return guids.contains(item.getGuid());
     }
 }

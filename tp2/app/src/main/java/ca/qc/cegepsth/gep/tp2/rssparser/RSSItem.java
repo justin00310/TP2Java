@@ -1,7 +1,9 @@
 package ca.qc.cegepsth.gep.tp2.rssparser;
 
 import java.io.Serializable;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -14,14 +16,14 @@ public class RSSItem implements Serializable{
 
 	String titre;
 	String description;
-	String date;
-    String image;
+	Date date;
+    URL imageUrl;
     String auteur;
-    String url;
+    URL url;
     String guid; // permet d'identifier l'épisode de façon théoriquement unique
     private List<RSSMedia> medias;
 
-    void addMedia(String type, String url){
+    void addMedia(String type, URL url){
         if(medias == null)
             medias = new ArrayList<RSSMedia>();
 
@@ -45,15 +47,15 @@ public class RSSItem implements Serializable{
     /**
      * @return the date
      */
-    public String getDate() {
+    public Date getDate() {
         return date;
     }
 
     /**
      * @return the image
      */
-    public String getImage() {
-        return image;
+    public URL getImageUrl() {
+        return imageUrl;
     }
 
     /**
@@ -66,7 +68,7 @@ public class RSSItem implements Serializable{
     /**
      * @return the URL
      */
-    public String getURL() {
+    public URL getURL() {
         return url;
     }
 

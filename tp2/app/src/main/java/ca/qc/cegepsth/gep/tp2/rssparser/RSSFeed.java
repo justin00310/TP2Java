@@ -1,8 +1,5 @@
 package ca.qc.cegepsth.gep.tp2.rssparser;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -10,7 +7,10 @@ import org.xml.sax.InputSource;
 
 import java.io.Serializable;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Observable;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -26,7 +26,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 public class RSSFeed extends Observable implements Runnable, Serializable {
 
     private URL url;
-    private Bitmap image;
+    private URL imageUrl;
     private String titre;
 
     private ArrayList<RSSItem> items;
@@ -64,8 +64,7 @@ public class RSSFeed extends Observable implements Runnable, Serializable {
                 if (imageNodeUrl != null) {
                     for (int i = 0; i < imageNodeUrl.getLength(); i++) {
                         if ("url".equals(imageNodeUrl.item(i).getNodeName())) {
-                            URL imageUrl = new URL(imageNodeUrl.item(i).getTextContent());
-                            image = BitmapFactory.decodeStream(imageUrl.openConnection().getInputStream());
+                            imageUrl = new URL(imageNodeUrl.item(i).getTextContent());
                         }
                     }
                 }
@@ -108,26 +107,41 @@ public class RSSFeed extends Observable implements Runnable, Serializable {
                                 item.description = nodeString;
                                 break;
                             case "pubDate":
-                                item.date = nodeString.replace(" +0000", "");
+
+                                try {
+                                    SimpleDateFormat format =
+                                            new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
+                                    item.date = format.parse(nodeString);
+                                }
+                                catch(ParseException pe) {
+                                    item.date = null;
+                                }
                                 break;
                             case "author":
                             case "dc:creator":
                                 item.auteur = nodeString;
                                 break;
                             case "link":
-                                item.url = nodeString;
+                                item.url = new URL(nodeString);
+                                break;
+                            case "itunes:image":
+                                item.imageUrl= new URL(nodeChild.item(j).getAttributes().getNamedItem("href").getNodeValue());
                                 break;
                             case "thumbnail":
-                                item.image = nodeString;
+                                item.imageUrl= new URL(nodeString);
                                 break;
                             case "guid":
                                 item.guid = nodeString;
                                 break;
                             case "enclosure":
                             case "media:content":
-                                String url = nodeChild.item(j).getAttributes().getNamedItem("url").toString();
-                                String type = nodeChild.item(j).getAttributes().getNamedItem("type").toString();
-                                item.addMedia(type, url);
+                                String urlString = nodeChild.item(j).getAttributes().getNamedItem("url").getNodeValue();
+                                URL url = new URL(urlString);
+                                String type = nodeChild.item(j).getAttributes().getNamedItem("type").getNodeValue();
+                                if("image/jpeg".equals(type)){
+                                    item.imageUrl= url;
+                                }
+                                else item.addMedia(type, url);
                                 break;
                             default:
                                 break;
@@ -142,7 +156,9 @@ public class RSSFeed extends Observable implements Runnable, Serializable {
         setChanged();
 
         // Annonce la fin du traitement
-        notifyObservers(e);
+        synchronized (this) {
+            notifyObservers(e);
+        }
     }
 
     /**
@@ -159,8 +175,8 @@ public class RSSFeed extends Observable implements Runnable, Serializable {
      *
      * @return URL de l'image si existe
      */
-    public Bitmap getImage() {
-        return image;
+    public URL getImageUrl() {
+        return imageUrl;
     }
 
     public String getTitre() {

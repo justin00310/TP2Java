@@ -1,6 +1,7 @@
 package ca.qc.cegepsth.gep.tp2.rssparser;
 
 import java.io.Serializable;
+import java.net.URL;
 
 /**
  * Created by Stéphane Denis on 2016-09-25.
@@ -11,9 +12,9 @@ import java.io.Serializable;
 
 public class RSSMedia implements Serializable{
     private String type;
-    private String url;
+    private URL url;
 
-    public RSSMedia(String type, String url){
+    public RSSMedia(String type, URL url){
         this.type= type;
         this.url=url;
     }
@@ -22,7 +23,7 @@ public class RSSMedia implements Serializable{
         return type;
     }
 
-    public String getUrl() {
+    public URL getUrl() {
         return url;
     }
 }
