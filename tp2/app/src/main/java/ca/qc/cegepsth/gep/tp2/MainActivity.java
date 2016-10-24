@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import java.net.MalformedURLException;
@@ -36,25 +37,26 @@ public class MainActivity extends AppCompatActivity {
 
         lstItems = new ArrayList<RSSItem>();
         lv = (ListView) findViewById(R.id.lstItems);
+        EditText editUrl = (EditText) findViewById(R.id.edtUrl);
 
-        /**Va chercher l'intent déclenché par
-        l'ouvertur d'un lien RSS **/
+        //Va chercher l'intent déclenchée par l'ouvertur d'un lien RSS
         Intent intent = getIntent();
-        //Définit l'url du flux RSS à convertir
         Uri uri = intent.getData();
-
+        //Si ouvert a partir d'une page web, url apparait en haut
         if (uri != null) {
             try {
                 url = new URL(uri.toString());
+                editUrl.setText(url.toString());
             } catch (MalformedURLException e) {
                 e.printStackTrace();
+                //afficher une erreur?
             }
         }
 
         Button buttonAdd = (Button) findViewById(R.id.btnAjouter);
         buttonAdd.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
+                //ajouter l'url 'a la liste de feed
             }
         });
     }
