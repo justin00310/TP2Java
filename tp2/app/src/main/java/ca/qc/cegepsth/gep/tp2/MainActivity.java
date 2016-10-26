@@ -5,7 +5,7 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -30,9 +30,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
 
     ListView lv;
     ArrayList<RSSItem> lstItems;
-    ArrayAdapter<String> adapter;
     RSSFeed feed;
-    URL url;
     FluxSuivis fluxs;
 
     @Override
@@ -45,22 +43,20 @@ public class MainActivity extends AppCompatActivity implements Observer {
         //observer les fluxs suivis
         fluxs.addObserver(this);
 
-        lstItems = new ArrayList<RSSItem>();
         lv = (ListView) findViewById(R.id.lstItems);
         final EditText editUrl = (EditText) findViewById(R.id.edtUrl);
 
-        //Va chercher l'intent déclenchée par l'ouvertur d'un lien RSS
+        //Va chercher l'intent déclenchée par l'ouverture d'un lien RSS
         Intent intent = getIntent();
         Uri uri = intent.getData();
         //Si ouvert a partir d'une page web, url apparait en haut
-        url = null;
+        URL url = null;
         if (uri != null) {
             try {
                 url = new URL(uri.toString());
                 editUrl.setText(url.toString());
             } catch (MalformedURLException e) {
                 e.printStackTrace();
-                //afficher une erreur?
             }
         }
 
@@ -72,23 +68,31 @@ public class MainActivity extends AppCompatActivity implements Observer {
                 editUrl.setText("http://");
             }
         });
-
         //Instanciation et exécution pour la conversion RSS
         feed = new RSSFeed(url);
-
-        //adapter = new ArrayAdapter<String>(MainActivity.this,
-                //android.R.layout.simple_list_item_1, itemList);
-        //lv.setAdapter(adapter);
+        refreshList();
     }
+    //re-dessine le UI
+    private void refreshList(){
+        //test
+        Uri blah = Uri.parse("http://www.developpez.com/template/favicon.png");
+        //créer les feeds à partir des informations
+        ArrayList<FeedInfo> feeds = new ArrayList<FeedInfo>();
 
+        //TODO: ajouter les feedinfos selon les infos trouvées par les RSSFeed
+        //TODO: aller chercher les images sur internet selon le URI
+        for(URL u : fluxs.getListe()){
+            feeds.add(new FeedInfo(u, blah, "Test"));
+        }
+        FeedAdapter adapter = new FeedAdapter(this, R.layout.feed_list_list_item, feeds);
+        lv.setAdapter(adapter);
+        lv.invalidateViews();
+    }
+    //Méthode appelée quand la liste des fluxs est mise à jour
     @Override
     public void update(Observable b, Object o){
         refreshList();
     }
-    private void refreshList(){
-        ArrayList<URL> urls = fluxs.getListe();
-    }
-
     //Retourne l'url à partir de l'uri
     private URL getUrl(Uri uri){
         URL url = null;

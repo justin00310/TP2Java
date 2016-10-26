@@ -94,6 +94,7 @@ public class FluxSuivis extends Observable implements Serializable, Observer {
      * @return nombre d'items suivis
      */
     public int getCount(){
+
         return suivi.size();
     }
 
