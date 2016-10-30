@@ -5,10 +5,10 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,7 +18,6 @@ import java.util.Observer;
 
 import ca.qc.cegepsth.gep.tp2.registre.FluxSuivis;
 import ca.qc.cegepsth.gep.tp2.rssparser.RSSFeed;
-import ca.qc.cegepsth.gep.tp2.rssparser.RSSItem;
 
 /**
  * @Auteur : Justin Leblanc et Chris
@@ -29,26 +28,69 @@ import ca.qc.cegepsth.gep.tp2.rssparser.RSSItem;
 public class MainActivity extends AppCompatActivity implements Observer {
 
     ListView lv;
-    ArrayList<RSSItem> lstItems;
-    RSSFeed feed;
     FluxSuivis fluxs;
+    ArrayList<RSSFeed> feeds;
+    FeedAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //aller chercher l'instance des fluxs suivis
+        //initialisation
+        feeds = new ArrayList<RSSFeed>();
+        adapter = new FeedAdapter(this, R.layout.feed_list_list_item, feeds);
         fluxs = FluxSuivis.getInstance();
-        //observer les fluxs suivis
-        fluxs.addObserver(this);
 
+        //vérifier si ouvert à partir d'un lien valide
+        openedFromLink(getIntent());
+
+        //aller chercher les ids
         lv = (ListView) findViewById(R.id.lstItems);
         final EditText editUrl = (EditText) findViewById(R.id.edtUrl);
+        Button buttonAdd = (Button) findViewById(R.id.btnAjouter);
+        buttonAdd.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                addFlux(getUrl(editUrl.getText().toString()));
+                Toast.makeText(getApplicationContext(), editUrl.getText().toString() + " a été ajouté.", Toast.LENGTH_LONG).show();
+                editUrl.setText("http://");
+            }
+        });
+        //TODO: remove this
+        RSSFeed f = new RSSFeed(getUrl("http://rss.radio-canada.ca/balado/radio/lumiere.xml"));
+        f.addObserver(this);
+        feeds.add(f);
 
+        createList();
+    }
+    //créer la liste de feeds à partir des urls suivis
+    private void createList(){
+        for(URL u : fluxs.getListe()){
+            RSSFeed f = new RSSFeed(u);
+            f.addObserver(this);
+            feeds.add(f);
+        }
+        lv.setAdapter(adapter);
+    }
+    //mettre 'a jour le ui
+    private void refresh(){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adapter.notifyDataSetChanged();
+            }
+        });
+    }
+    //Méthode appelée quand un des feeds termine son exécution
+    @Override
+    public void update(Observable b, Object o){
+        refresh();
+    }
+    //vérifie si ouvert à partir d'un lien
+    private void openedFromLink(Intent i){
+        EditText editUrl = (EditText)findViewById(R.id.edtUrl);
         //Va chercher l'intent déclenchée par l'ouverture d'un lien RSS
-        Intent intent = getIntent();
-        Uri uri = intent.getData();
+        Uri uri = i.getData();
         //Si ouvert a partir d'une page web, url apparait en haut
         URL url = null;
         if (uri != null) {
@@ -59,49 +101,18 @@ public class MainActivity extends AppCompatActivity implements Observer {
                 e.printStackTrace();
             }
         }
-
-        Button buttonAdd = (Button) findViewById(R.id.btnAjouter);
-        buttonAdd.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                //ajouter l'url 'a la liste de feed
-                fluxs.add(getUrl(editUrl.getText().toString()));
-                editUrl.setText("http://");
-            }
-        });
-        //Instanciation et exécution pour la conversion RSS
-        feed = new RSSFeed(url);
-        refreshList();
     }
-    //re-dessine le UI
-    private void refreshList(){
-        //test
-        Uri blah = Uri.parse("http://www.developpez.com/template/favicon.png");
-        //créer les feeds à partir des informations
-        ArrayList<FeedInfo> feeds = new ArrayList<FeedInfo>();
-
-        //TODO: ajouter les feedinfos selon les infos trouvées par les RSSFeed
-        //TODO: aller chercher les images sur internet selon le URI
-        for(URL u : fluxs.getListe()){
-            feeds.add(new FeedInfo(u, blah, "Test"));
+    //méthode pour ajouter des fluxs et créer le feed associé
+    private void addFlux(URL u){
+        if(!(fluxs.getListe().contains(u))){
+            fluxs.add(u);
+            RSSFeed f = new RSSFeed(u);
+            f.addObserver(this);
+            feeds.add(f);
         }
-        FeedAdapter adapter = new FeedAdapter(this, R.layout.feed_list_list_item, feeds);
-        lv.setAdapter(adapter);
-        lv.invalidateViews();
-    }
-    //Méthode appelée quand la liste des fluxs est mise à jour
-    @Override
-    public void update(Observable b, Object o){
-        refreshList();
-    }
-    //Retourne l'url à partir de l'uri
-    private URL getUrl(Uri uri){
-        URL url = null;
-        try {
-            url = new URL(uri.toString());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
+        else{
+            Toast.makeText(getApplicationContext(), "Vous suivez déjà ce flux.", Toast.LENGTH_LONG).show();
         }
-        return url;
     }
 
     //Retourne l'url à partir d'une string
