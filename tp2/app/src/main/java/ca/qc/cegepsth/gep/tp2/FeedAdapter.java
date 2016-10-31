@@ -57,6 +57,10 @@ public class FeedAdapter extends ArrayAdapter<RSSFeed> {
         TextView title = (TextView) v.findViewById(R.id.textView);
         Button button = (Button) v.findViewById(R.id.button);
         //affecter les vues des bonnes valeurs
+        URL imgUrl = f.getImageUrl();
+        if(null != imgUrl) {
+            new ImageLoader(image).execute(imgUrl);
+        }
         title.setText(f.getTitre());
         button.setOnClickListener(new View.OnClickListener() {
             @Override
