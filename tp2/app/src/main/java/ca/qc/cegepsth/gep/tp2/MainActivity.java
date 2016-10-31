@@ -1,5 +1,6 @@
 package ca.qc.cegepsth.gep.tp2;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
@@ -10,6 +11,12 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -17,7 +24,9 @@ import java.util.Observable;
 import java.util.Observer;
 
 import ca.qc.cegepsth.gep.tp2.registre.FluxSuivis;
+import ca.qc.cegepsth.gep.tp2.registre.ItemsLus;
 import ca.qc.cegepsth.gep.tp2.rssparser.RSSFeed;
+import ca.qc.cegepsth.gep.tp2.rssparser.RSSItem;
 
 /**
  * @Auteur : Justin Leblanc et Chris
@@ -56,13 +65,45 @@ public class MainActivity extends AppCompatActivity implements Observer {
                 editUrl.setText("http://");
             }
         });
-        //TODO: remove this
-        RSSFeed f = new RSSFeed(getUrl("http://rss.radio-canada.ca/balado/radio/lumiere.xml"));
-        f.addObserver(this);
-        feeds.add(f);
+    }
 
+    @Override
+    protected  void onResume() {
+        super.onResume();
+        try {
+            FileInputStream fis = getApplicationContext().openFileInput("FluxSuivis");
+            ObjectInputStream is = new ObjectInputStream(fis);
+            if(is != null)
+                fluxs = (FluxSuivis) is.readObject();
+            is.close();
+            fis.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         createList();
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        try {
+            FileOutputStream fos = getApplicationContext().openFileOutput("FluxSuivis", Context.MODE_PRIVATE);
+            ObjectOutputStream os = new ObjectOutputStream(fos);
+            os.writeObject(fluxs);
+            os.close();
+            fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     //créer la liste de feeds à partir des urls suivis
     private void createList(){
         for(URL u : fluxs.getListe()){
@@ -81,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
             }
         });
     }
+
     //Méthode appelée quand un des feeds termine son exécution
     @Override
     public void update(Observable b, Object o){
