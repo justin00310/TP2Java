@@ -47,7 +47,7 @@ public class FeedAdapter extends ArrayAdapter<RSSFeed> {
             @Override
             public void onClick(View v) {
                 Context c = v.getContext();
-                Intent i = new Intent(c, FeedView.class);
+                Intent i = new Intent(c, FeedViewActivity.class);
                 i.putExtra("url", url.toString());
                 c.startActivity(i);
             }
@@ -58,9 +58,8 @@ public class FeedAdapter extends ArrayAdapter<RSSFeed> {
         Button button = (Button) v.findViewById(R.id.button);
         //affecter les vues des bonnes valeurs
         URL imgUrl = f.getImageUrl();
-        if(null != imgUrl) {
-            new ImageLoader(image).execute(imgUrl);
-        }
+        if(null == imgUrl){}
+        else { new ImageLoader(image).execute(imgUrl);}
         title.setText(f.getTitre());
         button.setOnClickListener(new View.OnClickListener() {
             @Override

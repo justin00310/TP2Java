@@ -1,5 +1,6 @@
 package ca.qc.cegepsth.gep.tp2;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
     FluxSuivis fluxs;
     ArrayList<RSSFeed> feeds;
     FeedAdapter adapter;
+    Boolean adding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
         feeds = new ArrayList<RSSFeed>();
         adapter = new FeedAdapter(this, R.layout.feed_list_list_item, feeds);
         fluxs = FluxSuivis.getInstance();
+        adding = false;
 
         //vérifier si ouvert à partir d'un lien valide
         openedFromLink(getIntent());
@@ -56,12 +59,22 @@ public class MainActivity extends AppCompatActivity implements Observer {
                 editUrl.setText("http://");
             }
         });
-        //TODO: remove this
         RSSFeed f = new RSSFeed(getUrl("http://rss.radio-canada.ca/balado/radio/lumiere.xml"));
-        f.addObserver(this);
-        feeds.add(f);
-
         createList();
+        fluxs.addObserver(new Observer() {
+            @Override
+            public void update(Observable o, Object arg) {
+                if(adding){
+                    //on est seulement en train d<ajouter un feed, traitement déjà fait
+                    adding = false;
+                }
+                else{
+                    //on vient d<effacer un feed, la liste doit être recrée
+                    feeds.clear();
+                    createList();
+                }
+            }
+        });
     }
     //créer la liste de feeds à partir des urls suivis
     private void createList(){
@@ -105,6 +118,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
     //méthode pour ajouter des fluxs et créer le feed associé
     private void addFlux(URL u){
         if(!(fluxs.getListe().contains(u))){
+            adding = true;
             fluxs.add(u);
             RSSFeed f = new RSSFeed(u);
             f.addObserver(this);

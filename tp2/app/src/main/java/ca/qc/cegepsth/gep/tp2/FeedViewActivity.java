@@ -20,7 +20,7 @@ import java.util.Observer;
 import ca.qc.cegepsth.gep.tp2.rssparser.RSSFeed;
 import ca.qc.cegepsth.gep.tp2.rssparser.RSSItem;
 
-public class FeedView extends AppCompatActivity implements Observer {
+public class FeedViewActivity extends AppCompatActivity implements Observer {
     URL url;
     RSSFeed feed;
     ListView lv;
@@ -32,15 +32,11 @@ public class FeedView extends AppCompatActivity implements Observer {
         setContentView(R.layout.activity_feed_view);
 
         adapter = new RSSItemAdapter(this, R.layout.feed_list_item , items);
-        TextView t = (TextView)findViewById(R.id.feed_view_txt_Url);
         lv = (ListView)findViewById(R.id.feed_view_lstv_RSSItems);
-        //aller cherche l'URL du feed
         Intent intent = getIntent();
         String urlString =  intent.getStringExtra("url");
         //convertir le string en url
         url = getUrl(urlString);
-        //afficher l'url
-        t.setText(url.toString());
         //activité qui affiche tous les items d'un feed en particulier
         lv.setAdapter(adapter);
         feed = new RSSFeed(url);

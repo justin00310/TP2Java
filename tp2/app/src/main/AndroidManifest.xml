@@ -49,15 +49,23 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http" android:pathPattern=".*xml" />
-                <data android:scheme="http" android:pathPattern=".*rss" />
-                <data android:scheme="http" android:pathPattern=".*rss.*" />
+
+                <data
+                    android:pathPattern=".*xml"
+                    android:scheme="http" />
+                <data
+                    android:pathPattern=".*rss"
+                    android:scheme="http" />
+                <data
+                    android:pathPattern=".*rss.*"
+                    android:scheme="http" />
             </intent-filter>
         </activity>
-        <activity android:name=".FeedView">
-        </activity>
+        <activity android:name=".FeedViewActivity"></activity>
+        <activity android:name=".RSSItemViewActivity"></activity>
     </application>
 
 </manifest>
